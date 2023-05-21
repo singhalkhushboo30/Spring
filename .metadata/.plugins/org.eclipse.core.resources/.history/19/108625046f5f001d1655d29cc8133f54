@@ -1,0 +1,71 @@
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+
+public class EncryptionDecryption_AES {
+	private SecretKey key;
+    private final int KEY_SIZE = 128;
+    private final int DATA_LENGTH = 128;
+    private Cipher encryptionCipher;
+
+    //creates an encryption keys
+    public void init() throws Exception {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(KEY_SIZE);
+        key = keyGenerator.generateKey();}
+    
+    //encrypt method- data passed that is to be encrypted and 
+    // returns the encrypted data in bytes
+    public String encrypt(String data) throws Exception {
+    	//byte array from the message(data)
+        byte[] dataInBytes = data.getBytes(); 
+        //encryptionCipher-method  will return a byte array of the encrypted data
+        encryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        encryptionCipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] encryptedBytes = encryptionCipher.doFinal(dataInBytes);
+        return encode(encryptedBytes);
+    }
+
+    //decrypt-method decrypt the data we encrypted by passing encrypted data as parameters
+    public String decrypt(String encryptedData) throws Exception {
+    	//converting data to byte array again
+        byte[] dataInBytes = decode(encryptedData);
+        //getting the instance of aes algorithm
+        Cipher decryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        GCMParameterSpec spec = new GCMParameterSpec(DATA_LENGTH, encryptionCipher.getIV());
+        //same key is used in encryption as parameters
+        decryptionCipher.init(Cipher.DECRYPT_MODE, key, spec);
+        // getting the bytes array from the decrypted bytes from the decryptionCipher.doFinal() method
+        byte[] decryptedBytes = decryptionCipher.doFinal(dataInBytes);
+        //and return the new string of the decrypted bytes
+        return new String(decryptedBytes);
+    }
+
+    private String encode(byte[] data) {
+        return Base64.getEncoder().encodeToString(data);
+    }
+
+    private byte[] decode(String data) {
+        return Base64.getDecoder().decode(data);
+    }
+    
+    public static void main(String[] args) {
+        try {
+            EncryptionDecryption_AES aes_encryption = new  EncryptionDecryption_AES();
+            aes_encryption.init();
+            String encryptedData = aes_encryption.encrypt("Hello");
+            String decryptedData = aes_encryption.decrypt(encryptedData);
+
+            System.out.println("Encrypted Data : " + encryptedData);
+            System.out.println("Decrypted Data : " + decryptedData);
+        } catch (Exception ignored) {
+        }
+    }
+
+	
+	
+
+}
